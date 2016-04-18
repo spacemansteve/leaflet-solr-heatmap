@@ -3,6 +3,7 @@ L.SolrHeatmap = L.GeoJSON.extend({
     solrRequestHandler: 'select',
     type: 'geojsonGrid',
     colors: ['#f1eef6', '#d7b5d8', '#df65b0', '#dd1c77', '#980043'],
+    popupDisplay: false,
     maxSampleSize: Number.MAX_SAFE_INTEGER  // for Jenks classification
   },
 
@@ -16,6 +17,12 @@ L.SolrHeatmap = L.GeoJSON.extend({
       _this._clearLayers();
       _this._getData();
     });
+    if (_this.options.popupDisplay)
+	{
+	   _this.heatmapLayerListener =  map.on('click', function(e) {
+		   _this._getNearbyData(e.latlng);
+		});
+	}
   },
 
   _computeHeatmapObject: function(data) {
@@ -105,6 +112,7 @@ L.SolrHeatmap = L.GeoJSON.extend({
     var cellSize = _this._getCellSize() * .75;
     var colors = _this.options.colors; 
     var classifications = _this._getClassifications(colors.length - 1);
+
     var maxValue = classifications[classifications.length - 1];
     var gradient = _this._getGradient(classifications);
 
@@ -126,8 +134,9 @@ L.SolrHeatmap = L.GeoJSON.extend({
 
     // settting max due to bug
     // http://stackoverflow.com/questions/26767722/leaflet-heat-issue-with-adding-points-with-intensity
-    var options = {max: .0001, radius: cellSize, gradient: gradient};
+    var options = {radius: cellSize, gradient: gradient, minOpacity: .5, max: 1};
     var heatmapLayer = L.heatLayer(heatmapCells, options);
+    heatmapLayer.setOptions(options);
     heatmapLayer.addTo(map);
     _this.heatmapLayer = heatmapLayer;
     _this._showRenderTime();
@@ -282,6 +291,120 @@ L.SolrHeatmap = L.GeoJSON.extend({
 
   _maxLat: function(row) {
     return this.facetHeatmap.maxY - (this.lengthY * row);
+  },
+
+  _getMetersPerPixel: function(latlng)
+  {
+      // based on http://stackoverflow.com/questions/27545098/leaflet-calculating-meters-per-pixel-at-zoom-level
+
+      // convert passed location to containerpoint (pixels)
+      var pointC = map.latLngToContainerPoint(latlng); 
+      var pointX = [pointC.x + 1, pointC.y]; // add one pixel to x
+      var pointY = [pointC.x, pointC.y + 1]; // add one pixel to y
+
+      // convert pixel coords to latlng's
+      var latLngC = map.containerPointToLatLng(pointC);
+      var latLngX = map.containerPointToLatLng(pointX);
+      var latLngY = map.containerPointToLatLng(pointY);
+
+      var distanceX = latLngC.distanceTo(latLngX); // calculate distance between c and x (latitude)
+      var distanceY = latLngC.distanceTo(latLngY); // calculate distance between c and y (longitude)
+      return Math.max(distanceX, distanceY);
+  },
+
+  // called on mouse clicks, sends Solr request for nearby documents
+  _getNearbyData: function(latlng)
+  {
+      var _this = this;
+      var pt = latlng.lat + ',' + latlng.lng;
+      var metersPerPixel = _this._getMetersPerPixel(latlng);
+      var cellSizePixels = _this._getCellSize();
+      var cellSizeKm = (metersPerPixel * cellSizePixels) / 1000.;
+      var lat = parseFloat(latlng.lat);
+      var lng = parseFloat(latlng.lng);
+      var bboxField = _this.options.bboxField
+      var areaField = _this.options.areaField;
+
+      // why does this intersection box have to be so large?
+      var query = '{!field f=' + bboxField + ' score=overlapRatio}Intersects(ENVELOPE(' + 
+			    (lng - .5) + ',' + (lng + .5) + ',' +  (lat + .5) + ',' + (lat - .5)
+			    + '))';
+      var queryHash = {q: query, rows: 20, wt: 'json'};
+      if (areaField)
+	  queryHash.sort = areaField + ' asc';
+      jQuery.ajax({
+	      url: _this._solrUrl + _this._solrQuery(),
+		  dataType: 'JSONP',
+		  data: queryHash,
+		  jsonp: 'json.wrf',
+		  success: function(data) {
+		  _this._nearbyDataResponseHandler(data, latlng);
+	      }});
+
+  },
+
+  // displays nearby items from solr
+  _nearbyDataResponseHandler: function (data, latlng)
+  {
+      var solrResponse = data;
+      var solrItems = data.response.docs;
+      var lines = "";
+      if (solrItems.length == 0)
+	  return;
+      for (var i = 0 ; i < Math.min(10, solrItems.length) ; i++)
+	  {
+	      var current = solrItems[i];
+	      var line = _this._popupDocFormatter(current);
+	      lines += line;
+	  }
+      var popup = L.popup();
+      popup.setLatLng(latlng);
+      popup.setContent(lines);
+      popup.openOn(map);
+
+  },
+
+  // format all displayed fields in the single passed solr doucment
+  // via config param, user can provide a function to format the document, 
+  //  the name of a single field to display 
+  //  a list of field names to display
+  _popupDocFormatter: function(doc)
+  {
+      var _this = this;
+      var popupDisplay = _this.options.popupDisplay;
+      if ((typeof popupDisplay) === "function")
+	  return popupDisplay(doc);
+
+      if ((typeof popupDisplay) === "string")
+	  return _this._popupFieldFormatter(doc, popupDisplay) + "<br/>";
+
+      if (Array.isArray(popupDisplay))
+	  {
+	      var fullValue = "";
+	      for (var i = 0 ; i < popupDisplay.length ; i++)
+		  {
+		      var field = popupDisplay[i];
+		      var value = _this._popupFieldFormatter(doc, field);
+		      fullValue += value + ".  "
+		  }
+	      return fullValue + "<br/>";
+	  }
+  },
+
+  // display passed field in solr docoument
+  // default ingest of json into solr wildcard fields often assumes they are multivalued
+  // so we pull elements out of returned array
+  _popupFieldFormatter: function(doc, field)
+  {
+      if (doc[field])
+	  {
+	      var value = doc[field];
+	      if (Array.isArray(value))
+		  value = value.join();
+	      return value;
+	  }
+      else
+	  return "Missing " + field;
   },
 
   _getData: function() {

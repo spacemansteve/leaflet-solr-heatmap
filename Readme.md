@@ -23,6 +23,25 @@ Option | Type | Default | Description
 `solrRequestHandler` | `String` | `'select'` | Request handler for Solr
 `colors` | `Array` | `['#f1eef6', '#d7b5d8', '#df65b0', '#dd1c77', '#980043']` | Colors for heatmap.  Array can be of any length.
 `maxSampleSize` | `Number` | `Number.MAX_SAFE_INTEGER` | For improved performance, run Jenks classification on only a sample of Solr counts.  Default value turns off sampling.  Typical value is 400.
+`popupDisplay` | `various` | `false` | on mouse click optionaly display nearby documents in popup, defaults to ignoring clicks
+`bboxField` | `String` | `null` | computing documents near a mouse click requires the bbox field
+`areaField` | `String` | `null` | when present, used to sort results for pop-up
+
+## popupDisplay
+When the user clicks on the map, the heatmap layer can popup a window
+with information on nearby Solr documents.  Nearby is defined as Solr
+documents within the size of a heatmap bubble cell.  On map clicks a
+Solr intersection is used on the field of type BBox.
+
+To display popups, set popupDisplay to the name of the Solr field you
+would like displayed.  If you need more than one field displayed, set 
+popupDisplay to a comma seperated list of Solr field names.  If you do
+not like the default formatting of Solr fields, set popupDisplay to a
+function that accepts one argument, a Solr document in JSON format.
+This function should return a string with HTML tags.  
+
+If the area field is provided, the results in the popup are sorted
+from smallest to largest.
 
 ## Running locally
 

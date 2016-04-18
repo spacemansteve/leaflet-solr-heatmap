@@ -6,9 +6,29 @@
     <script src="../bower_components/leaflet/dist/leaflet.js"></script>
     <script src="../bower_components/leaflet.markerclusterer/dist/leaflet.markercluster.js"></script>
     <script src="../bower_components/jquery/dist/jquery.min.js"></script>
-    <script src='../bower_components/geostats/lib/geostats.min.js'></script>
+    <script src='../bower_components/geostats/lib/geostats.js'></script>
+    <script src='../bower_components/heat/simpleheat.js'></script>
+    <script src='../bower_components/heat/HeatLayer.js'></script>
   </head>
   <body>
+    <div id='solrInfo'>
+      <h2>Solr Information:</h2>
+      <div style="margin-left: 50px">
+      URL: <input type='text' id='solrUrl' size='35' value='http://localhost:8983/solr/jstorTest'/>
+      <br/>
+      RPT Field Name: <input type='text' id='rptField' value='bbox_srpt'/>
+      <br/>
+      BBox Field Name: <input type='text' id='bboxField' value='bbox_bbox'/>
+      <br/>
+      Title Field Name: <input type='text' id='popupDisplayField' value='title,doi'/>
+      <br/>
+      Area Field Name: <input type='text' id='areaField' value='area_f'/>
+      <br/>
+      <button onclick='resetSolr()'>Reset</button>
+      <br/>
+      <br/>
+      </div>
+    </div>
     <div id='map'></div>
     <div id='responseTime'></div>
     <div id='numDocs'></div>
