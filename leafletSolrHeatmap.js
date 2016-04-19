@@ -108,8 +108,9 @@ L.SolrHeatmap = L.GeoJSON.extend({
 
   _createHeatmap: function(){
     var _this = this;
+    if (_this.facetHeatmap.counts_ints2D == null) return;
     var heatmapCells = [];
-    var cellSize = _this._getCellSize() * .75;
+    var cellSize = _this._getCellSize() * 1.;
     var colors = _this.options.colors; 
     var classifications = _this._getClassifications(colors.length - 1);
 
@@ -227,6 +228,7 @@ L.SolrHeatmap = L.GeoJSON.extend({
   {
     var _this = this;
     var one_d_array = [];
+    if (_this.facetHeatmap.counts_ints2D == null) return;
     for(var i = 0; i < _this.facetHeatmap.counts_ints2D.length; i++) {
 	if (_this.facetHeatmap.counts_ints2D[i] != null)
 	    one_d_array = one_d_array.concat(_this.facetHeatmap.counts_ints2D[i]);
@@ -320,6 +322,8 @@ L.SolrHeatmap = L.GeoJSON.extend({
       var metersPerPixel = _this._getMetersPerPixel(latlng);
       var cellSizePixels = _this._getCellSize();
       var cellSizeKm = (metersPerPixel * cellSizePixels) / 1000.;
+      var cellSizeDegrees = cellSizeKm / 111.
+      console.log('cellSizeDegrees', cellSizeDegrees);
       var lat = parseFloat(latlng.lat);
       var lng = parseFloat(latlng.lng);
       var bboxField = _this.options.bboxField
@@ -327,7 +331,7 @@ L.SolrHeatmap = L.GeoJSON.extend({
 
       // why does this intersection box have to be so large?
       var query = '{!field f=' + bboxField + ' score=overlapRatio}Intersects(ENVELOPE(' + 
-			    (lng - .5) + ',' + (lng + .5) + ',' +  (lat + .5) + ',' + (lat - .5)
+			    (lng - cellSizeDegrees) + ',' + (lng + cellSizeDegrees) + ',' +  (lat + cellSizeDegrees) + ',' + (lat - cellSizeDegrees)
 			    + '))';
       var queryHash = {q: query, rows: 20, wt: 'json'};
       if (areaField)
@@ -384,8 +388,18 @@ L.SolrHeatmap = L.GeoJSON.extend({
 	      for (var i = 0 ; i < popupDisplay.length ; i++)
 		  {
 		      var field = popupDisplay[i];
-		      var value = _this._popupFieldFormatter(doc, field);
-		      fullValue += value + ".  "
+		      if ((typeof field) === "object")
+		      {
+			  // if current field is an array it is ['fieldname', function(doc,fieldname){...}
+			  var fieldname = field[0];
+			  var passedFunction = field[1];
+			  fullValue +=  passedFunction(doc, fieldname);
+		      }
+		      else
+		      {
+			  var value = _this._popupFieldFormatter(doc, field);
+			  fullValue += value + ".  ";
+		      }
 		  }
 	      return fullValue + "<br/>";
 	  }

@@ -35,7 +35,10 @@ Solr intersection is used on the field of type BBox.
 
 To display popups, set popupDisplay to the name of the Solr field you
 would like displayed.  If you need more than one field displayed, set 
-popupDisplay to a comma seperated list of Solr field names.  If you do
+popupDisplay to a comma seperated list of Solr field names.  If you
+want to provide a formatter for a single field, rather than providing
+the field name provide an array whose first element is the field name
+and second element a function that takes a Solr document.  If you do
 not like the default formatting of Solr fields, set popupDisplay to a
 function that accepts one argument, a Solr document in JSON format.
 This function should return a string with HTML tags.  
