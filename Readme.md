@@ -36,15 +36,32 @@ Solr intersection is used on the field of type BBox.
 To display popups, set popupDisplay to the name of the Solr field you
 would like displayed.  If you need more than one field displayed, set 
 popupDisplay to a comma seperated list of Solr field names.  If you
-want to provide a formatter for a single field, rather than providing
+want to change the formatting of a single field, rather than providing
 the field name provide an array whose first element is the field name
-and second element a function that takes a Solr document.  If you do
-not like the default formatting of Solr fields, set popupDisplay to a
-function that accepts one argument, a Solr document in JSON format.
-This function should return a string with HTML tags.  
+and second element a function that takes a Solr document.  This
+function should return the html description of the field.  You can
+override all the default formatting of Solr fields.  Simply set
+popupDisplay to a function that accepts one argument, a Solr document
+in JSON format. This function should return a string with HTML tags.   
 
 If the area field is provided, the results in the popup are sorted
 from smallest to largest.
+
+
+```javascript
+// how to specify popup
+var solr = L.solrHeatmap("http://localhost:8983/solr/coreName", 
+{
+  field: 'bounds_rpt',
+  type: 'heatmap',
+  bboxField: 'bounds_bbox',
+  popupDisplay: ['title',['doi', function(doc) {return formatDoi(doc);}],'count']
+}.addTo(map);
+
+// where title, doi and count are Solr field names 
+// and formatDoi is a local Javascript function that returns the html
+// representation of the doi field
+```
 
 ## Running locally
 

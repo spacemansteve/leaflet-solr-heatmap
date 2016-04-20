@@ -11,15 +11,17 @@ function onEachFeature(feature, layer) {
 
 // Create and add a solrHeatmap layer to the map
 //var solr = L.solrHeatmap('http://127.0.0.1:8983/solr/gettingstarted', {
-//var solr = L.solrHeatmap('http://dev.jdarchive.org:8080/solr/zeega', {
 
 function resetSolr()
 {
     var solrUrl = jQuery('#solrUrl').val();
+    var renderType = jQuery("#renderType option:selected" ).text();
+    console.log('renderType', renderType);
     var rptField = jQuery('#rptField').val();
     var bboxField = jQuery('#bboxField').val();
     var popupDisplayField = jQuery('#popupDisplayField').val();
     var areaField = jQuery('#areaField').val();
+    
     if (popupDisplayField.contains(','))
 	popupDisplayField = popupDisplayField.split(',');
     else
@@ -56,21 +58,17 @@ function resetSolr()
     //http://localhost:8983/solr/jstorTest
     solr = L.solrHeatmap(solrUrl, {
 	    // Solr field with geospatial data (should be type Spatial Recursive Prefix Tree)
-	    //field: 'loc_srpt',
-	    //field: 'bbox_srpt',
 	    field: rptField,
+	    // Sorl field needed to compute nearby items (should be type BBox Field)
 	    bboxField: bboxField,
 	    
-	    // Set type of visualization. Allowed types: 'geojsonGrid', 'clusters' Note: 'clusters' requires LeafletMarkerClusterer
-	    type: 'heatmap',
-	    //type: 'geojsonGrid',
-	    //type: 'clusters',
+	    // Set type of visualization. Allowed types: 'geojsonGrid', 'clusters' Note: 'clusters' requires LeafletMarkerClusterer, heatmap
+	    type: renderType,
 	    colors: ['#000000', '#0000df', '#00effe', '#00ff42', '#feec30', '#ff5f00', '#ff0000'],
 	    maxSampleSize: 400,
-	    //popupDisplay: ['title', 'doi'],
 	    popupDisplay: popupDisplayField,
+	    // we optionally sort display of nearby items from smallest to largest
 	    areaField: areaField,
-	    //popupDisplay: function(doc) {return doc['title']},
 	    
 	    // Inherited from L.GeoJSON
 	    onEachFeature: onEachFeature
