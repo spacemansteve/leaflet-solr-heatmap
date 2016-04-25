@@ -91,7 +91,6 @@ L.HeatLayer = (L.Layer ? L.Layer : L.Class).extend({
     },
 
     _updateOptions: function () {
-	    console.log('options', this.options);
 	this._heat.radius(this.options.radius || this._heat.defaultRadius, this.options.blur);
 
 
