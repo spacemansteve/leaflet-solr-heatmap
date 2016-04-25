@@ -16,11 +16,10 @@ function resetSolr()
 {
     var solrUrl = jQuery('#solrUrl').val();
     var renderType = jQuery("#renderType option:selected" ).text();
-    console.log('renderType', renderType);
     var rptField = jQuery('#rptField').val();
     var bboxField = jQuery('#bboxField').val();
     var popupDisplayField = jQuery('#popupDisplayField').val();
-    var areaField = jQuery('#areaField').val();
+    var sortField = jQuery('#sortField').val();
     
     if (popupDisplayField.contains(','))
 	popupDisplayField = popupDisplayField.split(',');
@@ -36,7 +35,6 @@ function resetSolr()
 		    // this code highlights the problem of L.SolrHeatmap creating L.Heat
 		    // perhaps L.SolrHeatmap needs to override remove layer
 		    map.removeLayer(solr.heatmapLayer);
-		    console.log("listener", solr.heatmapLayerListener);
 		    map.off("click", solr.heatmapLayerListener);
 		}
 
@@ -49,7 +47,7 @@ function resetSolr()
 	value = doc['doi'];
 	if (Array.isArray(value))
 	    value = value.join();
-	return "<a target='_blank' href='http://www.jstor.org/stable/" + value + "'>" + value + "</a>";
+	return "<a target='_blank' href='http://www.jstor.org/stable/" + value + "'>" + value + "</a>.  ";
     };
     doiIndex = popupDisplayField.indexOf('doi');
     if (doiIndex > -1 )
@@ -68,7 +66,7 @@ function resetSolr()
 	    maxSampleSize: 400,
 	    popupDisplay: popupDisplayField,
 	    // we optionally sort display of nearby items from smallest to largest
-	    areaField: areaField,
+	    sortField: sortField,
 	    
 	    // Inherited from L.GeoJSON
 	    onEachFeature: onEachFeature

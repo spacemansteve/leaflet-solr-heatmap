@@ -25,7 +25,7 @@ Option | Type | Default | Description
 `maxSampleSize` | `Number` | `Number.MAX_SAFE_INTEGER` | For improved performance, run Jenks classification on only a sample of Solr counts.  Default value turns off sampling.  Typical value is 400.
 `popupDisplay` | `various` | `false` | on mouse click optionaly display nearby documents in popup, defaults to ignoring clicks
 `bboxField` | `String` | `null` | computing documents near a mouse click requires the bbox field
-`areaField` | `String` | `null` | when present, used to sort results for pop-up
+`sortField` | `String` | `null` | when present, used to sort results for pop-up in desc order
 
 ## popupDisplay
 When the user clicks on the map, the heatmap layer can popup a window
@@ -44,8 +44,8 @@ override all the default formatting of Solr fields.  Simply set
 popupDisplay to a function that accepts one argument, a Solr document
 in JSON format. This function should return a string with HTML tags.   
 
-If the area field is provided, the results in the popup are sorted
-from smallest to largest.
+If the sort field is provided, the results in the popup are sorted
+from largest to smallest
 
 
 ```javascript

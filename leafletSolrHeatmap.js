@@ -135,9 +135,9 @@ L.SolrHeatmap = L.GeoJSON.extend({
 
     // settting max due to bug
     // http://stackoverflow.com/questions/26767722/leaflet-heat-issue-with-adding-points-with-intensity
-    var options = {radius: cellSize, gradient: gradient, minOpacity: .5, max: 1};
+    var options = {radius: cellSize, gradient: gradient, minOpacity: .1};
     var heatmapLayer = L.heatLayer(heatmapCells, options);
-    heatmapLayer.setOptions(options);
+    //heatmapLayer.setOptions(options);
     heatmapLayer.addTo(map);
     _this.heatmapLayer = heatmapLayer;
     _this._showRenderTime();
@@ -323,19 +323,18 @@ L.SolrHeatmap = L.GeoJSON.extend({
       var cellSizePixels = _this._getCellSize();
       var cellSizeKm = (metersPerPixel * cellSizePixels) / 1000.;
       var cellSizeDegrees = cellSizeKm / 111.
-      console.log('cellSizeDegrees', cellSizeDegrees);
       var lat = parseFloat(latlng.lat);
       var lng = parseFloat(latlng.lng);
       var bboxField = _this.options.bboxField
-      var areaField = _this.options.areaField;
+      var sortField = _this.options.sortField;
 
       // why does this intersection box have to be so large?
       var query = '{!field f=' + bboxField + ' score=overlapRatio}Intersects(ENVELOPE(' + 
 			    (lng - cellSizeDegrees) + ',' + (lng + cellSizeDegrees) + ',' +  (lat + cellSizeDegrees) + ',' + (lat - cellSizeDegrees)
 			    + '))';
       var queryHash = {q: query, rows: 20, wt: 'json'};
-      if (areaField)
-	  queryHash.sort = areaField + ' asc';
+      if (sortField)
+	  queryHash.sort = sortField + ' desc';
       jQuery.ajax({
 	      url: _this._solrUrl + _this._solrQuery(),
 		  dataType: 'JSONP',
@@ -415,6 +414,13 @@ L.SolrHeatmap = L.GeoJSON.extend({
 	      var value = doc[field];
 	      if (Array.isArray(value))
 		  value = value.join();
+	      if (typeof value === 'string')
+	      {
+		  // strings that look like a url should be html links
+		  var temp = value.toLowerCase();
+		  if (temp.startsWith('http://') || temp.startsWith('https://'))
+		      value = "<a href='" + value + "'>" + value + "</a>";
+	      }
 	      return value;
 	  }
       else

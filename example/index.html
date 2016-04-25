@@ -9,12 +9,13 @@
     <script src='../bower_components/geostats/lib/geostats.js'></script>
     <script src='../bower_components/heat/simpleheat.js'></script>
     <script src='../bower_components/heat/HeatLayer.js'></script>
+    <title>SolrSpatialExplorer</title>
   </head>
   <body>
     <div id='solrInfo'>
-      <h2>Solr Information:</h2>
+      <h2>Solr Spatial Explorer</h2>
       <div style="margin-left: 50px">
-      URL: <input type='text' id='solrUrl' size='35' value='http://localhost:8983/solr/jstorTest'/>
+      Solr URL: <input type='text' id='solrUrl' size='35' value='http://localhost:8983/solr/jstorTest'/>
       <br/>
       Render Style: <select id='renderType'>
 	<option>geojsonGrid</option>
@@ -22,13 +23,13 @@
 	<option selected='selected'>heatmap</option>
 	</select>
       <br/>
-      RPT Field Name: <input type='text' id='rptField' value='bbox_srpt'/>
+      RPT Field: <input type='text' id='rptField' value='bbox_srpt'/>
       <br/>
-      BBox Field Name: <input type='text' id='bboxField' value='bbox_bbox'/>
+      BBox Field: <input type='text' id='bboxField' value='bbox_bbox'/>
       <br/>
-      Title Field Name: <input type='text' id='popupDisplayField' value='title,doi'/>
+      Popup Fields: <input type='text' id='popupDisplayField' value='geocodedOccurancesCount_i,doi,title,geocodedLocation_s'/>
       <br/>
-      Area Field Name: <input type='text' id='areaField' value='area_f'/>
+      Popup Sort Field: <input type='text' id='sortField' value='geocodedOccurancesCount_i'/>
       <br/>
       <button onclick='resetSolr()'>Reset</button>
       <br/>
