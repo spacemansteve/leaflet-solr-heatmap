@@ -30,6 +30,8 @@ function resetSolr()
     if (solr)
 	{
 	    map.removeLayer(solr);
+	    map.off('moveend');
+	    solr._clearLayers();
 	    if (solr.heatmapLayer)
 		{
 		    // this code highlights the problem of L.SolrHeatmap creating L.Heat
