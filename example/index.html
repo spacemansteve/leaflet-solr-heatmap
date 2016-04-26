@@ -23,9 +23,12 @@
 	<option selected='selected'>heatmap</option>
 	</select>
       <br/>
+      Color Map: <input type='text'id='colorMap' size='50' value="#000000,#0000df,#00effe,#00ff42,#feec30,#ff5f00,#ff0000"/>
+      <br/>
       RPT Field: <input type='text' id='rptField' value='bbox_srpt'/>
       <br/>
-      BBox Field: <input type='text' id='bboxField' value='bbox_bbox'/>
+      Nearby Field: <input type='text' id='nearbyField' value='bbox_bbox'/>  Type: <select id='nearbyFieldType'>
+	<option selected='selected'>BBox</option><option>RPT</option></select>
       <br/>
       Popup Fields: <input type='text' id='popupDisplayField' value='geocodedOccurancesCount_i,doi,title,geocodedLocation_s'/>
       <br/>

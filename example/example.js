@@ -17,15 +17,18 @@ function resetSolr()
     var solrUrl = jQuery('#solrUrl').val();
     var renderType = jQuery("#renderType option:selected" ).text();
     var rptField = jQuery('#rptField').val();
-    var bboxField = jQuery('#bboxField').val();
+    var colorMap = jQuery('#colorMap').val();
+    var nearbyField = jQuery('#nearbyField').val();
+    var nearbyFieldType = jQuery("#nearbyFieldType option:selected" ).text();
     var popupDisplayField = jQuery('#popupDisplayField').val();
     var sortField = jQuery('#sortField').val();
-    
+
     if (popupDisplayField.contains(','))
 	popupDisplayField = popupDisplayField.split(',');
     else
 	popupDisplayField = [popupDisplayField];
-	    
+
+    colorMap = colorMap.split(',');
 
     if (solr)
 	{
@@ -59,12 +62,13 @@ function resetSolr()
     solr = L.solrHeatmap(solrUrl, {
 	    // Solr field with geospatial data (should be type Spatial Recursive Prefix Tree)
 	    field: rptField,
-	    // Sorl field needed to compute nearby items (should be type BBox Field)
-	    bboxField: bboxField,
+	    // Sorl field needed to compute nearby items
+	    nearbyField: nearbyField,
+	    nearbyFieldType: nearbyFieldType,
 	    
 	    // Set type of visualization. Allowed types: 'geojsonGrid', 'clusters' Note: 'clusters' requires LeafletMarkerClusterer, heatmap
 	    type: renderType,
-	    colors: ['#000000', '#0000df', '#00effe', '#00ff42', '#feec30', '#ff5f00', '#ff0000'],
+	    colors: colorMap, //['#000000', '#0000df', '#00effe', '#00ff42', '#feec30', '#ff5f00', '#ff0000'],
 	    maxSampleSize: 400,
 	    popupDisplay: popupDisplayField,
 	    // we optionally sort display of nearby items from smallest to largest

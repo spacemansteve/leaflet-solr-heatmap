@@ -4,7 +4,8 @@ L.SolrHeatmap = L.GeoJSON.extend({
     type: 'geojsonGrid',
     colors: ['#f1eef6', '#d7b5d8', '#df65b0', '#dd1c77', '#980043'],
     popupDisplay: false,
-    maxSampleSize: Number.MAX_SAFE_INTEGER  // for Jenks classification
+    maxSampleSize: Number.MAX_SAFE_INTEGER,  // for Jenks classification
+    nearbyFieldType: 'BBox'
   },
 
   initialize: function(url, options) {
@@ -325,14 +326,29 @@ L.SolrHeatmap = L.GeoJSON.extend({
       var cellSizeDegrees = cellSizeKm / 111.
       var lat = parseFloat(latlng.lat);
       var lng = parseFloat(latlng.lng);
-      var bboxField = _this.options.bboxField
+      var nearbyField = _this.options.nearbyField;
+      var nearbyFieldType = _this.options.nearbyFieldType;
       var sortField = _this.options.sortField;
 
-      // why does this intersection box have to be so large?
-      var query = '{!field f=' + bboxField + ' score=overlapRatio}Intersects(ENVELOPE(' + 
+      // for bbox field
+      var query = '{!field f=' + nearbyField + ' score=overlapRatio}Intersects(ENVELOPE(' + 
 			    (lng - cellSizeDegrees) + ',' + (lng + cellSizeDegrees) + ',' +  (lat + cellSizeDegrees) + ',' + (lat - cellSizeDegrees)
 			    + '))';
       var queryHash = {q: query, rows: 20, wt: 'json'};
+      if (nearbyFieldType === 'RPT')
+      {
+	  query = "*:*";
+	  queryHash = {
+	      q: query,
+	      rows: 20,
+	      wt: 'json',
+	      fq: '{!geofilt}',
+	      sfield: nearbyField,
+	      d: cellSizeKm,
+	      pt: pt,
+	      sort: "geodist() asc"
+	  };
+      }
       if (sortField)
 	  queryHash.sort = sortField + ' desc';
       jQuery.ajax({
