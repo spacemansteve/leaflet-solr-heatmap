@@ -370,7 +370,7 @@ L.SolrHeatmap = L.GeoJSON.extend({
       var lines = "";
       if (solrItems.length == 0)
 	  return;
-      for (var i = 0 ; i < Math.min(10, solrItems.length) ; i++)
+      for (var i = 0 ; i < Math.min(20, solrItems.length) ; i++)
 	  {
 	      var current = solrItems[i];
 	      var line = _this._popupDocFormatter(current);
