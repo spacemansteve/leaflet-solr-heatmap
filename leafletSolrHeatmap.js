@@ -9,22 +9,32 @@ L.SolrHeatmap = L.GeoJSON.extend({
   },
 
   initialize: function(url, options) {
+	    console.log(' in leafletSolrHeatmap.initialize');
     var _this = this;
     options = L.setOptions(_this, options);
     _this._solrUrl = url;
     _this._layers = {};
-    _this._getData();
-    map.on('moveend', function() {
-      _this._clearLayers();
-      _this._getData();
-    });
-    if (_this.options.popupDisplay)
-	{
-	   _this.heatmapLayerListener =  map.on('click', function(e) {
-		   _this._getNearbyData(e.latlng);
-		});
-	}
   },
+
+  onAdd: function (map) {
+	    var _this = this;
+  	    this._map = map;
+	    map.on('moveend', function() {
+		    _this._clearLayers();
+		    _this._getData();
+		});
+	    if (_this.options.popupDisplay)
+		{
+		    if (typeof _this.options.popupDisplay === "string")
+			if (_this.options.popupDisplay.contains(","))
+			    // easier for angular to pass in string
+			    _this.options.popupDisplay = _this.options.popupDisplay.split(',');
+		    _this.heatmapLayerListener =  map.on('click', function(e) {
+			    _this._getNearbyData(e.latlng);
+		});
+		}
+	    _this._getData();
+ 	},
 
   _computeHeatmapObject: function(data) {
     var _this = this;
@@ -56,7 +66,8 @@ L.SolrHeatmap = L.GeoJSON.extend({
         _this.clusterMarkers.clearLayers();
         break;
       case 'heatmap':
-	  map.removeLayer(_this.heatmapLayer);
+	  if (_this._map)
+	      _this._map.removeLayer(_this.heatmapLayer);
 	  break;
     }
   },
@@ -158,7 +169,7 @@ L.SolrHeatmap = L.GeoJSON.extend({
   // compute size of heatmap cells in pixels
   _getCellSize: function(){
     _this = this;
-    var mapSize = map.getSize();  // should't we use solr returned map extent?
+    var mapSize = _this._map.getSize();  // should't we use solr returned map extent?
     var widthInPixels = mapSize.x; 
     var heightInPixels = mapSize.y;
     var heatmapRows = _this.facetHeatmap.rows;
@@ -202,7 +213,7 @@ L.SolrHeatmap = L.GeoJSON.extend({
       });
     });
 
-    map.addLayer(_this.clusterMarkers);
+    _this._map.addLayer(_this.clusterMarkers);
     _this._showRenderTime();
   },
 
@@ -301,14 +312,15 @@ L.SolrHeatmap = L.GeoJSON.extend({
       // based on http://stackoverflow.com/questions/27545098/leaflet-calculating-meters-per-pixel-at-zoom-level
 
       // convert passed location to containerpoint (pixels)
-      var pointC = map.latLngToContainerPoint(latlng); 
+      var _this = this;
+      var pointC = _this._map.latLngToContainerPoint(latlng); 
       var pointX = [pointC.x + 1, pointC.y]; // add one pixel to x
       var pointY = [pointC.x, pointC.y + 1]; // add one pixel to y
 
       // convert pixel coords to latlng's
-      var latLngC = map.containerPointToLatLng(pointC);
-      var latLngX = map.containerPointToLatLng(pointX);
-      var latLngY = map.containerPointToLatLng(pointY);
+      var latLngC = _this._map.containerPointToLatLng(pointC);
+      var latLngX = _this._map.containerPointToLatLng(pointX);
+      var latLngY = _this._map.containerPointToLatLng(pointY);
 
       var distanceX = latLngC.distanceTo(latLngX); // calculate distance between c and x (latitude)
       var distanceY = latLngC.distanceTo(latLngY); // calculate distance between c and y (longitude)
@@ -470,12 +482,14 @@ L.SolrHeatmap = L.GeoJSON.extend({
   },
 
   _mapViewToEnvelope: function() {
-    var bounds = map.getBounds();
+    var _this = this;
+    var bounds = _this._map.getBounds();
     return ':"Intersects(ENVELOPE(' + bounds.getWest() + ', ' + bounds.getEast() + ', ' + bounds.getNorth() + ', ' + bounds.getSouth() + '))"';
   },
 
   _mapViewToWkt: function() {
-    var bounds = map.getBounds();
+    var _this = this;
+    var bounds = _this._map.getBounds();
     return '["' + bounds.getWest() + ' ' + bounds.getSouth() + '" TO "' + bounds.getEast() + ' ' + bounds.getNorth() + '"]';
   },
 
