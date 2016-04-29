@@ -16,20 +16,20 @@ L.SolrHeatmap = L.GeoJSON.extend({
     _this._layers = {};
   },
 
-  onAdd: function (map) {
+  onAdd: function (passedMap) {
 	    var _this = this;
-  	    this._map = map;
-	    map.on('moveend', function() {
+  	    _this._map = passedMap;
+	    _this._map.on('moveend', function() {
 		    _this._clearLayers();
 		    _this._getData();
 		});
 	    if (_this.options.popupDisplay)
 		{
 		    if (typeof _this.options.popupDisplay === "string")
-			if (_this.options.popupDisplay.contains(","))
+			if (_this.options.popupDisplay.indexOf(",") > -1)
 			    // easier for angular to pass in string
 			    _this.options.popupDisplay = _this.options.popupDisplay.split(',');
-		    _this.heatmapLayerListener =  map.on('click', function(e) {
+		    _this.heatmapLayerListener =  _this._map.on('click', function(e) {
 			    _this._getNearbyData(e.latlng);
 		});
 		}
@@ -313,6 +313,8 @@ L.SolrHeatmap = L.GeoJSON.extend({
 
       // convert passed location to containerpoint (pixels)
       var _this = this;
+      if (_this._map == null) return;
+
       var pointC = _this._map.latLngToContainerPoint(latlng); 
       var pointX = [pointC.x + 1, pointC.y]; // add one pixel to x
       var pointY = [pointC.x, pointC.y + 1]; // add one pixel to y
@@ -331,6 +333,8 @@ L.SolrHeatmap = L.GeoJSON.extend({
   _getNearbyData: function(latlng)
   {
       var _this = this;
+      if (_this._map == null) 
+	  {console.log('leafletSolrHeatmap._getNearbyData null map warning');return;}
       var pt = latlng.lat + ',' + latlng.lng;
       var metersPerPixel = _this._getMetersPerPixel(latlng);
       var cellSizePixels = _this._getCellSize();
@@ -446,7 +450,7 @@ L.SolrHeatmap = L.GeoJSON.extend({
 	      {
 		  // strings that look like a url should be html links
 		  var temp = value.toLowerCase();
-		  if (temp.startsWith('http://') || temp.startsWith('https://'))
+		  if (temp.indexOf('http://') == 0 || temp.indexOf('https://') == 0)
 		      value = "<a href='" + value + "'>" + value + "</a>";
 	      }
 	      return value;

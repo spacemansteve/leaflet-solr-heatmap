@@ -23,7 +23,7 @@ function resetSolr()
     var popupDisplayField = jQuery('#popupDisplayField').val();
     var sortField = jQuery('#sortField').val();
 
-    if (popupDisplayField.contains(','))
+    if (popupDisplayField.indexOf(',') > -1)
 	popupDisplayField = popupDisplayField.split(',');
     else
 	popupDisplayField = [popupDisplayField];
@@ -40,7 +40,7 @@ function resetSolr()
 		    // this code highlights the problem of L.SolrHeatmap creating L.Heat
 		    // perhaps L.SolrHeatmap needs to override remove layer
 		    map.removeLayer(solr.heatmapLayer);
-		    map.off("click", solr.heatmapLayerListener);
+		    map.off("click");
 		}
 
 	}
