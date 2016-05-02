@@ -61,6 +61,15 @@ function resetSolr()
     var solrSuccessHandler = function(data, textStatus, jqXHR)
     {
 	jQuery('#errorMessage').text('');
+        jQuery('#responseTime').html('Solr response time' + solr.solrTime + ' ms');
+        jQuery('#numDocs').html('Number of docs: ' + solr.docsCount.toLocaleString());
+
+    };
+
+    var renderCompleteHandler = function()
+    {
+	if (solr.renderTime)
+	    $('#renderTime').html('Render time: ' + solr.renderTime + ' ms');
     };
 
     //http://localhost:8983/solr/jstorTest
@@ -82,6 +91,7 @@ function resetSolr()
 	    solrNearbyErrorHandler: solrNearbyErrorHandler,
 	    solrSuccessHandler: solrSuccessHandler,
 	    solrNearbySuccessHandler: solrSuccessHandler,
+	    renderCompleteHandler: renderCompleteHandler,
 	    // Inherited from L.GeoJSON
 	    onEachFeature: onEachFeature
 	});

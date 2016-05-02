@@ -10,6 +10,7 @@ L.SolrHeatmap = L.GeoJSON.extend({
     solrSuccessHandler: null,
     solrNearbyErrorHandler: null,
     solrNearbySuccessHandler: null,
+    renderCompleteHandler: null
   },
 
   initialize: function(url, options) {
@@ -139,7 +140,7 @@ L.SolrHeatmap = L.GeoJSON.extend({
     var colors = _this.options.colors; 
     var classifications = _this._getClassifications(colors.length);
     _this._styleByCount(classifications);
-    _this._showRenderTime();
+    _this._setRenderTime();
   },
 
   _createHeatmap: function(){
@@ -175,7 +176,7 @@ L.SolrHeatmap = L.GeoJSON.extend({
     //heatmapLayer.setOptions(options);
     heatmapLayer.addTo(map);
     _this.heatmapLayer = heatmapLayer;
-    _this._showRenderTime();
+    _this._setRenderTime();
   },
 
   // heatmap display need hash of scaled counts value, color pairs
@@ -213,10 +214,9 @@ L.SolrHeatmap = L.GeoJSON.extend({
     }
 },
 
-  _showRenderTime: function() {
-    var _this = this,
-      renderTime = 'Render time: ' + (Date.now() - _this.renderStart) + ' ms';
-    $('#renderTime').html(renderTime);
+  _setRenderTime: function() {
+    var _this = this;
+    _this.renderTime = Date.now() - _this.renderStart;
   },
 
   _createClusters: function() {
@@ -247,7 +247,7 @@ L.SolrHeatmap = L.GeoJSON.extend({
     });
 
     _this._map.addLayer(_this.clusterMarkers);
-    _this._showRenderTime();
+    _this._setRenderTime();
   },
 
   _computeIntArrays: function() {
@@ -516,15 +516,22 @@ L.SolrHeatmap = L.GeoJSON.extend({
       },
       jsonp: 'json.wrf',
       success: function(data, textStatus, jqXHR) {
-        var totalTime = 'Solr response time: ' + (Date.now() - startTime) + ' ms';
+	var solrTime = Date.now() - startTime; 
+	if (data.response == null)
+	{
+	    console.log("warning, invalid solr result"); return;
+	}
+        _this.docsCount = data.response.numFound;
+	_this.solrTime = solrTime;
+
 	if (_this.options.solrSuccessHandler)
 	    _this.options.solrSuccessHandler(data, textStatus, jqXHR);
 
-        $('#responseTime').html(totalTime);
-        _this.docsCount = data.response.numFound;
-        $('#numDocs').html('Number of docs: ' + _this.docsCount.toLocaleString());
         _this.renderStart = Date.now();
         _this._computeHeatmapObject(data);
+	if (_this.options.renderCompleteHandler)
+	    _this.options.renderCompleteHandler(data, textStatus, jqXHR);
+
       },
       error: function(jqXHR, textStatus, errorThrown) {
 	if (_this.options.solrErrorHandler)
