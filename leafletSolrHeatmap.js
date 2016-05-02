@@ -8,6 +8,8 @@ L.SolrHeatmap = L.GeoJSON.extend({
     nearbyFieldType: 'BBox',
     solrErrorHandler: null,
     solrSuccessHandler: null,
+    solrNearbyErrorHandler: null,
+    solrNearbySuccessHandler: null,
   },
 
   initialize: function(url, options) {
@@ -404,13 +406,13 @@ L.SolrHeatmap = L.GeoJSON.extend({
 		  data: queryHash,
 		  jsonp: 'json.wrf',
 		  success: function(data, textStatus, jqXHR) {
-		      if (_this.options.solrSuccessHandler)
-			  _this.options.solrSuccessHandler(data, textStatus, jqXHR);
+		      if (_this.options.solrNearbySuccessHandler)
+			  _this.options.solrNearbySuccessHandler(data, textStatus, jqXHR);
 		      _this._nearbyDataResponseHandler(data, latlng);
 	          },
 		  error: function(jqXHR, textStatus, errorThrown) {
-		      if (_this.options.solrErrorHandler)
-			  _this.options.solrErrorHandler(jqXHR, textStatus, errorThrown);
+		      if (_this.options.solrNearbyErrorHandler)
+			  _this.options.solrNearbyErrorHandler(jqXHR, textStatus, errorThrown);
       }
 
 	  });

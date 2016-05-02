@@ -49,7 +49,13 @@ function resetSolr()
     var solrErrorHandler = function(jqXHR, textStatus, errorThrown)
     {
 	// due to jsonp, no details are available
-	jQuery('#errorMessage').text('Solr error, bad URL or field name');
+	jQuery('#errorMessage').text('Solr error, bad URL or RPT field name');
+    };
+
+    var solrNearbyErrorHandler = function(jqXHR, textStatus, errorThrown)
+    {
+	// due to jsonp, no details are available
+	jQuery('#errorMessage').text('Solr error, bad URL or field name related to pop-up');
     };
 
     var solrSuccessHandler = function(data, textStatus, jqXHR)
@@ -73,7 +79,9 @@ function resetSolr()
 	    // we optionally sort display of nearby items from smallest to largest
 	    sortField: sortField,
 	    solrErrorHandler: solrErrorHandler,
+	    solrNearbyErrorHandler: solrNearbyErrorHandler,
 	    solrSuccessHandler: solrSuccessHandler,
+	    solrNearbySuccessHandler: solrSuccessHandler,
 	    // Inherited from L.GeoJSON
 	    onEachFeature: onEachFeature
 	});

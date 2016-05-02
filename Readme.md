@@ -27,6 +27,12 @@ Option | Type | Default | Description
 `nearbyField` | `String` | `null` | computing documents near a mouse click, BBox required for non-point data
 `nearbyFieldType` | `String` | 'BBox' | either BBox or RPT
 `sortField` | `String` | `null` | when present, used to sort results for pop-up in desc order
+`solrSuccessHandler` | `function` | `null` | user function to call during processing of Solr heatmap results, args: data, textStatus, jqXHR
+`solrErrorHandler` | `function` | `null` | user function to call when Solr heatmap response was an error, args: jqXHR, textStatus, errorThrown
+`solrNearbySuccessHandler` | `function` | `null` | user function to call during processing of Solr "nearby" results, args: data, textStatus, jqXHR
+`solrNearbyErrorHandler` | `function` | `null` | user function to call when Solr "nearby" response was an error, args: jqXHR, textStatus, errorThrown
+
+
 
 ## popupDisplay
 When the user clicks on the map, the heatmap layer can popup a window
