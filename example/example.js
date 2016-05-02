@@ -30,20 +30,10 @@ function resetSolr()
 
     colorMap = colorMap.split(',');
 
-    if (solr)
-	{
-	    map.removeLayer(solr);
-	    map.off('moveend');
-	    solr._clearLayers();
-	    if (solr.heatmapLayer)
-		{
-		    // this code highlights the problem of L.SolrHeatmap creating L.Heat
-		    // perhaps L.SolrHeatmap needs to override remove layer
-		    map.removeLayer(solr.heatmapLayer);
-		    map.off("click");
-		}
 
-	}
+
+    if (solr)
+	map.removeLayer(solr);
 
     // if the doi field is present, we format it as an html link to the jstor document
     // first, a function to generate the html

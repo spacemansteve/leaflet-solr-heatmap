@@ -35,6 +35,18 @@ L.SolrHeatmap = L.GeoJSON.extend({
 	    _this._getData();
  	},
 
+  onRemove: function(passedMap)
+  {
+      var _this = this;
+      passedMap.off('moveend');
+      _this._clearLayers();
+      if (_this.heatmapLayer)
+      {
+	  passedMap.removeLayer(_this.heatmapLayer);
+	  map.off("click"); // will this remove click handlers that it shouldn't
+      }
+  },
+
   _computeHeatmapObject: function(data) {
     var _this = this;
     _this.facetHeatmap = {},
