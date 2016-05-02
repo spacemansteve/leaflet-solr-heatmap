@@ -30,14 +30,12 @@ function resetSolr()
 
     colorMap = colorMap.split(',');
 
-
-
     if (solr)
 	map.removeLayer(solr);
 
     // if the doi field is present, we format it as an html link to the jstor document
     // first, a function to generate the html
-    doiLinker = function(doc)
+    var doiLinker = function(doc)
     {
 	value = doc['doi'];
 	if (Array.isArray(value))
@@ -47,6 +45,17 @@ function resetSolr()
     doiIndex = popupDisplayField.indexOf('doi');
     if (doiIndex > -1 )
 	popupDisplayField[doiIndex] = ['doi', function(doc) {return doiLinker(doc);}];
+    
+    var solrErrorHandler = function(jqXHR, textStatus, errorThrown)
+    {
+	// due to jsonp, no details are available
+	jQuery('#errorMessage').text('Solr error, bad URL or field name');
+    };
+
+    var solrSuccessHandler = function(data, textStatus, jqXHR)
+    {
+	jQuery('#errorMessage').text('');
+    };
 
     //http://localhost:8983/solr/jstorTest
     solr = L.solrHeatmap(solrUrl, {
@@ -63,7 +72,8 @@ function resetSolr()
 	    popupDisplay: popupDisplayField,
 	    // we optionally sort display of nearby items from smallest to largest
 	    sortField: sortField,
-	    
+	    solrErrorHandler: solrErrorHandler,
+	    solrSuccessHandler: solrSuccessHandler,
 	    // Inherited from L.GeoJSON
 	    onEachFeature: onEachFeature
 	});

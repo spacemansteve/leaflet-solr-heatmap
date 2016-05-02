@@ -5,7 +5,9 @@ L.SolrHeatmap = L.GeoJSON.extend({
     colors: ['#f1eef6', '#d7b5d8', '#df65b0', '#dd1c77', '#980043'],
     popupDisplay: false,
     maxSampleSize: Number.MAX_SAFE_INTEGER,  // for Jenks classification
-    nearbyFieldType: 'BBox'
+    nearbyFieldType: 'BBox',
+    solrErrorHandler: null,
+    solrSuccessHandler: null,
   },
 
   initialize: function(url, options) {
@@ -38,13 +40,22 @@ L.SolrHeatmap = L.GeoJSON.extend({
   onRemove: function(passedMap)
   {
       var _this = this;
-      passedMap.off('moveend');
-      _this._clearLayers();
-      if (_this.heatmapLayer)
+      try
       {
-	  passedMap.removeLayer(_this.heatmapLayer);
-	  map.off("click"); // will this remove click handlers that it shouldn't
+	  passedMap.off('moveend');
+	  if (_this.heatmapLayer)
+	  {
+	      passedMap.removeLayer(_this.heatmapLayer);
+	      map.off("click"); // will this remove click handlers that it shouldn't
+	  }
+	  _this._clearLayers();
       }
+      catch (e)
+      {
+	  // perhaps there was an error during initialization
+	  console.log('exception in onRemove cleanup');
+      }
+
   },
 
   _computeHeatmapObject: function(data) {
@@ -179,15 +190,25 @@ L.SolrHeatmap = L.GeoJSON.extend({
   // compute size of heatmap cells in pixels
   _getCellSize: function(){
     _this = this;
-    var mapSize = _this._map.getSize();  // should't we use solr returned map extent?
-    var widthInPixels = mapSize.x; 
-    var heightInPixels = mapSize.y;
-    var heatmapRows = _this.facetHeatmap.rows;
-    var heatmapColumns = _this.facetHeatmap.columns;
-    var sizeX = widthInPixels / heatmapColumns;
-    var sizeY = heightInPixels / heatmapRows;
-    var size = Math.ceil(Math.max(sizeX, sizeY));
-    return size;
+    try
+    {
+	var mapSize = _this._map.getSize();  // should't we use solr returned map extent?
+	var widthInPixels = mapSize.x; 
+	var heightInPixels = mapSize.y;
+	var heatmapRows = _this.facetHeatmap.rows;
+	var heatmapColumns = _this.facetHeatmap.columns;
+	var sizeX = widthInPixels / heatmapColumns;
+	var sizeY = heightInPixels / heatmapRows;
+	var size = Math.ceil(Math.max(sizeX, sizeY));
+	return size;
+    }
+    catch (e)
+    {
+	// it is possible that there has never been a heatmap requested
+	// so we can not use it to compute the size of the actual heatmap
+	// return default
+	return 25;
+    }
 },
 
   _showRenderTime: function() {
@@ -382,9 +403,17 @@ L.SolrHeatmap = L.GeoJSON.extend({
 		  dataType: 'JSONP',
 		  data: queryHash,
 		  jsonp: 'json.wrf',
-		  success: function(data) {
-		  _this._nearbyDataResponseHandler(data, latlng);
-	      }});
+		  success: function(data, textStatus, jqXHR) {
+		      if (_this.options.solrSuccessHandler)
+			  _this.options.solrSuccessHandler(data, textStatus, jqXHR);
+		      _this._nearbyDataResponseHandler(data, latlng);
+	          },
+		  error: function(jqXHR, textStatus, errorThrown) {
+		      if (_this.options.solrErrorHandler)
+			  _this.options.solrErrorHandler(jqXHR, textStatus, errorThrown);
+      }
+
+	  });
 
   },
 
@@ -484,13 +513,20 @@ L.SolrHeatmap = L.GeoJSON.extend({
         fq: _this.options.field + _this._mapViewToEnvelope()
       },
       jsonp: 'json.wrf',
-      success: function(data) {
+      success: function(data, textStatus, jqXHR) {
         var totalTime = 'Solr response time: ' + (Date.now() - startTime) + ' ms';
+	if (_this.options.solrSuccessHandler)
+	    _this.options.solrSuccessHandler(data, textStatus, jqXHR);
+
         $('#responseTime').html(totalTime);
         _this.docsCount = data.response.numFound;
         $('#numDocs').html('Number of docs: ' + _this.docsCount.toLocaleString());
         _this.renderStart = Date.now();
         _this._computeHeatmapObject(data);
+      },
+      error: function(jqXHR, textStatus, errorThrown) {
+	if (_this.options.solrErrorHandler)
+	    _this.options.solrErrorHandler(jqXHR, textStatus, errorThrown);
       }
     });
   },
