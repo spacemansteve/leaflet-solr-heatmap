@@ -9,7 +9,6 @@ L.SolrHeatmap = L.GeoJSON.extend({
   },
 
   initialize: function(url, options) {
-	    console.log(' in leafletSolrHeatmap.initialize');
     var _this = this;
     options = L.setOptions(_this, options);
     _this._solrUrl = url;
@@ -128,7 +127,6 @@ L.SolrHeatmap = L.GeoJSON.extend({
 
     var maxValue = classifications[classifications.length - 1];
     var gradient = _this._getGradient(classifications);
-
     $.each(_this.facetHeatmap.counts_ints2D, function(row, value) {
       if (value === null) {
         return;
@@ -139,9 +137,9 @@ L.SolrHeatmap = L.GeoJSON.extend({
           return;
         }
 	var scaledValue = Math.min((val / maxValue), 1);
-	var current = [_this._minLat(row), _this._minLng(column), scaledValue];
+	var current = [(_this._minLat(row) + _this._maxLat(row)) / 2.,
+		       (_this._minLng(column) + _this._maxLng(column)) / 2., scaledValue];
 	heatmapCells.push(current);
-	// need to create options object to set gradient, blu, radius, max
       })
     });
 
