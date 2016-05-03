@@ -10,7 +10,8 @@ L.SolrHeatmap = L.GeoJSON.extend({
     solrSuccessHandler: null,
     solrNearbyErrorHandler: null,
     solrNearbySuccessHandler: null,
-    renderCompleteHandler: null
+    renderCompleteHandler: null,
+    popupHighlight: false
   },
 
   initialize: function(url, options) {
@@ -408,7 +409,7 @@ L.SolrHeatmap = L.GeoJSON.extend({
 		  success: function(data, textStatus, jqXHR) {
 		      if (_this.options.solrNearbySuccessHandler)
 			  _this.options.solrNearbySuccessHandler(data, textStatus, jqXHR);
-		      _this._nearbyDataResponseHandler(data, latlng);
+		      _this._nearbyDataResponseHandler(data, latlng, _this);
 	          },
 		  error: function(jqXHR, textStatus, errorThrown) {
 		      if (_this.options.solrNearbyErrorHandler)
@@ -420,24 +421,98 @@ L.SolrHeatmap = L.GeoJSON.extend({
   },
 
   // displays nearby items from solr
-  _nearbyDataResponseHandler: function (data, latlng)
+  _nearbyDataResponseHandler: function (data, latlng, _this)
   {
       var solrResponse = data;
       var solrItems = data.response.docs;
       var lines = "";
+      _this.tmpIdToSolr = {};
       if (solrItems.length == 0)
 	  return;
-      for (var i = 0 ; i < Math.min(20, solrItems.length) ; i++)
+      var limit = Math.min(20, solrItems.length);
+      for (var i = 0 ; i < limit ; i++)
 	  {
 	      var current = solrItems[i];
 	      var line = _this._popupDocFormatter(current);
+	      var id = 'tempLshId' + i;
+	      _this.tmpIdToSolr[id] = current;
+	      line = "<div id='" + id + "'>" + line + "</div>";
 	      lines += line;
 	  }
-      var popup = L.popup();
+      // offset the popup so it doesn't cover highlighting
+      var popup = L.popup({offset: L.point(0, -20)});
       popup.setLatLng(latlng);
       popup.setContent(lines);
       popup.openOn(map);
 
+      if (_this.options.popupHighlight)
+      {
+	  // div elements exist, add mouseover to highlight each one
+	  for (var i = 0 ; i < limit ; i++)
+	  {	  
+	      var id = 'tempLshId' + i;
+	      var div = jQuery('#' + id);
+	      var solrRecord = _this.tmpIdToSolr[id];
+	      _this._addMouse(div, id);
+	  };
+      }
+  },
+
+  // add mouseover and mouseout to highlight and unhighlight
+  _addMouse: function(div, id)
+  {
+      var _this = this;
+      div.mouseover(id, function(event){
+	      var id = event.data;
+	      var solr = _this.tmpIdToSolr[id];
+	      _this._highlightDocument(id, solr);
+	  });
+      div.mouseout(id, function(event){
+	      var id = event.data;
+	      var solr = _this.tmpIdToSolr[id];
+	      _this._unhighlightDocument(id, solr);
+	  });
+  },
+
+  // called when the mouse out of the div for  an item on the popup of nearby things
+  // undo anything highlightDocument did
+  _unhighlightDocument: function(divId, solrDocument)
+  {
+      var _this = this;
+      var div = jQuery("#" + divId);
+      div.css({backgroundColor: ''});
+
+      if (_this.highlightRectangle)
+	  _this._map.removeLayer(_this.highlightRectangle);
+  },
+
+  // called when the passed div received a mouseover event
+  // highlight element in div and on map
+  _highlightDocument: function(divId, solrDocument)
+  {
+      var _this = this;
+      var div = jQuery("#" + divId);
+      div.css({backgroundColor: 'aliceblue'});
+      var rpt = solrDocument[_this.options.field];
+      if (_this.highlightRectangle)
+	  _this._map.removeLayer(_this.highlightRectangle);
+      if (rpt.indexOf("ENVELOPE") > -1)
+      {
+	  rpt = rpt.substr(rpt.indexOf('(') + 1);
+	  rpt = rpt.substr(0, rpt.length - 1);
+	  var coords = rpt.split(',');
+	  var minX = parseFloat(coords[0]);
+	  var maxX = parseFloat(coords[1]);
+	  var maxY = parseFloat(coords[2]);
+	  var minY = parseFloat(coords[3]);
+	  var bounds = [[maxY, minX], [minY, maxX]];
+
+	  _this.highlightRectangle = L.rectangle(bounds, {opacity: 1});
+	  _this.highlightRectangle.addTo(_this._map);
+	  _this.highlightRectangle.bringToFront();
+      }
+      else
+	  console.log("can not highlight ", rpt);
   },
 
   // format all displayed fields in the single passed solr doucment

@@ -1,4 +1,4 @@
-var map = L.map('map').setView([0, 0], 1);
+var map = L.map('map').setView([39.82, -98.58], 4);
 
 var layer = L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
   attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>'
@@ -92,6 +92,7 @@ function resetSolr()
 	    solrSuccessHandler: solrSuccessHandler,
 	    solrNearbySuccessHandler: solrSuccessHandler,
 	    renderCompleteHandler: renderCompleteHandler,
+	    popupHighlight: true,
 	    // Inherited from L.GeoJSON
 	    onEachFeature: onEachFeature
 	});

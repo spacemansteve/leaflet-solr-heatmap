@@ -27,11 +27,13 @@ Option | Type | Default | Description
 `nearbyField` | `String` | `null` | computing documents near a mouse click, BBox required for non-point data
 `nearbyFieldType` | `String` | 'BBox' | either BBox or RPT
 `sortField` | `String` | `null` | when present, used to sort results for pop-up in desc order
+`popupHighlight` | `Boolean` | `false` | on mouseover in popup list of nearby items, items and their boudning boxes can be highlighted
 `solrSuccessHandler` | `function` | `null` | user function to call during processing of Solr heatmap results, args: data, textStatus, jqXHR
 `solrErrorHandler` | `function` | `null` | user function to call when Solr heatmap response was an error, args: jqXHR, textStatus, errorThrown
 `solrNearbySuccessHandler` | `function` | `null` | user function to call during processing of Solr "nearby" results, args: data, textStatus, jqXHR
 `solrNearbyErrorHandler` | `function` | `null` | user function to call when Solr "nearby" response was an error, args: jqXHR, textStatus, errorThrown
 `renderCompleteHandler` | `function` | `null` | user function to call after rendering of Solr heatmap response is complete
+
 
 
 
