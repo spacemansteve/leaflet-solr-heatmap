@@ -33,6 +33,7 @@ Option | Type | Default | Description
 `solrNearbySuccessHandler` | `function` | `null` | user function to call during processing of Solr "nearby" results, args: data, textStatus, jqXHR
 `solrNearbyErrorHandler` | `function` | `null` | user function to call when Solr "nearby" response was an error, args: jqXHR, textStatus, errorThrown
 `renderCompleteHandler` | `function` | `null` | user function to call after rendering of Solr heatmap response is complete
+`showGlobalResults` | `boolean` | `false` | should we display a popup in the corner of the map listing results from the entire map
 
 
 

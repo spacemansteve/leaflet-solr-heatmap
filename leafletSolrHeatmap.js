@@ -11,7 +11,8 @@ L.SolrHeatmap = L.GeoJSON.extend({
     solrNearbyErrorHandler: null,
     solrNearbySuccessHandler: null,
     renderCompleteHandler: null,
-    popupHighlight: false
+    popupHighlight: false,
+    showGlobalResults: false
   },
 
   initialize: function(url, options) {
@@ -19,6 +20,7 @@ L.SolrHeatmap = L.GeoJSON.extend({
     options = L.setOptions(_this, options);
     _this._solrUrl = url;
     _this._layers = {};
+    _this.timeOfLastClick = 0;
   },
 
   onAdd: function (passedMap) {
@@ -35,6 +37,7 @@ L.SolrHeatmap = L.GeoJSON.extend({
 			    // easier for angular to pass in string
 			    _this.options.popupDisplay = _this.options.popupDisplay.split(',');
 		    _this.heatmapLayerListener =  _this._map.on('click', function(e) {
+			    _this.timeOfLastClick = Date.now();
 			    _this._getNearbyData(e.latlng);
 		});
 		}
@@ -423,6 +426,12 @@ L.SolrHeatmap = L.GeoJSON.extend({
   // displays nearby items from solr
   _nearbyDataResponseHandler: function (data, latlng, _this)
   {
+      _this._createPopup(data, latlng);
+  },
+  
+  // display solr data in popup with highighlighting
+  _createPopup: function(data, latlng)
+  {
       var solrResponse = data;
       var solrItems = data.response.docs;
       var lines = "";
@@ -578,12 +587,19 @@ L.SolrHeatmap = L.GeoJSON.extend({
   _getData: function() {
     var _this = this;
     var startTime = Date.now();
+    var bounds = _this._map.getBounds();
+    var q = "*:*";
+    if (_this.options.nearbyField && (_this.options.nearbyFieldType == 'BBox'))
+	// score layers using bbox field
+	q = '{!field f=' + _this.options.nearbyField + ' score=overlapRatio}Intersects(ENVELOPE(' +
+	    bounds.getWest() + ',' + bounds.getEast() + ',' + bounds.getNorth() + ',' + bounds.getSouth() + '))';
     $.ajax({
       url: _this._solrUrl + _this._solrQuery(),
       dataType: 'JSONP',
       data: {
-        q: '*:*',
+        q: q,
         wt: 'json',
+        rows: 20,
         facet: true,
         'facet.heatmap': _this.options.field,
         'facet.heatmap.geom': _this._mapViewToWkt(),
@@ -606,6 +622,14 @@ L.SolrHeatmap = L.GeoJSON.extend({
         _this._computeHeatmapObject(data);
 	if (_this.options.renderCompleteHandler)
 	    _this.options.renderCompleteHandler(data, textStatus, jqXHR);
+	if (_this.options.showGlobalResults && ((Date.now() - _this.timeOfLastClick) > 1000))
+	{
+	    var mapBounds = _this._map.getBounds();
+	    var width = mapBounds.getEast() - mapBounds.getWest();
+	    var height = mapBounds.getNorth() - mapBounds.getSouth();
+	    var popupLocation = L.latLng(mapBounds.getSouth() + (height * 0.), mapBounds.getWest() + (width* .2));
+	    _this._createPopup(data, popupLocation);
+	}
 
       },
       error: function(jqXHR, textStatus, errorThrown) {

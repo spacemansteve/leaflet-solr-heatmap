@@ -22,6 +22,7 @@ function resetSolr()
     var nearbyFieldType = jQuery("#nearbyFieldType option:selected" ).text();
     var popupDisplayField = jQuery('#popupDisplayField').val();
     var sortField = jQuery('#sortField').val();
+    var showGlobalResults = jQuery('#showGlobalResults').is(':checked');
 
     if (popupDisplayField.indexOf(',') > -1)
 	popupDisplayField = popupDisplayField.split(',');
@@ -93,6 +94,7 @@ function resetSolr()
 	    solrNearbySuccessHandler: solrSuccessHandler,
 	    renderCompleteHandler: renderCompleteHandler,
 	    popupHighlight: true,
+	    showGlobalResults: showGlobalResults,
 	    // Inherited from L.GeoJSON
 	    onEachFeature: onEachFeature
 	});
