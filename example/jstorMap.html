@@ -1,0 +1,64 @@
+<html>
+  <head>
+  <!-- a simple page showing how to use the leaflet-solr-heatmap library -->
+
+    <link rel="stylesheet" href="../bower_components/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="../bower_components/leaflet.markerclusterer/dist/MarkerCluster.Default.css" />
+    <link rel='stylesheet' href='style.css' />
+    <script src="../bower_components/leaflet/dist/leaflet.js"></script>
+    <script src="../bower_components/leaflet.markerclusterer/dist/leaflet.markercluster.js"></script>
+    <script src="../bower_components/jquery/dist/jquery.min.js"></script>
+    <script src='../bower_components/geostats/lib/geostats.js'></script>
+    <script src='../bower_components/heat/simpleheat.js'></script>
+    <script src='../bower_components/heat/HeatLayer.js'></script>
+    <script src='../leafletSolrHeatmap.js'></script>
+    <title>SolrSpatialExplorer</title>
+    <style>
+      body {
+          padding: 0;
+          margin: 0;
+      }
+      html, body, #map {
+          height: 100%;
+          width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id='map'></div>
+
+    <script>
+      // first create map
+      var map = L.map('map').setView([39.82, -98.58], 4);
+      var layer = L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+      attribution: 'SolrSpatialExplorer &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>'
+      }).addTo(map);
+
+      var doiLinker = function(doc)  // a custom feild formater, convert doi field an anchor link to the resource
+      {
+          value = doc['doi'];
+	  if (Array.isArray(value))  // cleanup Solr multi-valued field
+	      value = value.join();
+	   return "<a target='_blank' href='http://www.jstor.org/stable/" + value + "'>" + value + "</a>.  ";
+      };
+
+      // finally, create leaflet-solr-heatmap layer with may parameters
+      var solr = L.solrHeatmap('https://labs.jstor.org/api/solr/geospatial', {
+	    // Solr field with geospatial data (should be type Spatial Recursive Prefix Tree)
+	    field: 'bbox_srpt',
+	    nearbyField: 'bbox_bbox',
+	    nearbyFieldType: 'BBox',
+	    type: 'heatmap',
+	    colors: ['#000000', '#0000df', '#00effe', '#00ff42', '#feec30', '#ff5f00', '#ff0000'],
+	    maxSampleSize: 400,
+	    popupDisplay: ['geocodedOccurancesCount_i',['doi', function(doc) {return doiLinker(doc);}],'title','geocodedLocation_s'],
+	    sortField: 'geocodedOccurancesCount_i',
+	    popupHighlight: true,
+	    showGlobalResults: true
+        });
+        solr.addTo(map);
+
+
+    </script>
+  </body>
+</html>
