@@ -1,6 +1,20 @@
 # Leaflet-Solr-Heatmap
 
-A Leaflet plugin that visualizes heatmap facets from Solr 5.x
+A Leaflet plugin that supports spatial exploration and visualizes heatmap facets from Solr 5.x
+
+## Demo 
+
+This code is running under GitHub Pages.  Two demos are available.
+[The
+first](http://spacemansteve.github.io/leaflet-solr-heatmap/example/jstorMap.html)
+provides a big map of [JSTOR data](http://www.jstor.org/) and shows how to integrate
+the library.  [The
+second](http://spacemansteve.github.io/leaflet-solr-heatmap/example/index.html)
+allows you to run the code against your Solr
+instance.  The UI includes a form so you can provide the URL of your
+Solr instance and a few details about your schema.  The repository's
+GitHub wiki provides more information.
+
 
 ## Using with Leaflet
 
@@ -10,7 +24,7 @@ var solr = L.solrHeatmap('http://127.0.0.1:8983/solr/gettingstarted', {
   // Solr field with geospatial data (should be type Spatial Recursive Prefix Tree)
   field: 'loc_srpt',
 
-  // Set type of visualization. Allowed types: 'geojsonGrid', 'clusters'
+  // Set type of visualization. Allowed types: 'geojsonGrid', 'clusters', 'heatmap'
   // Note: 'clusters' requires LeafletMarkerClusterer
   type: 'geojsonGrid'
 }).addTo(map);
