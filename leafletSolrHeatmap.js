@@ -21,6 +21,7 @@ L.SolrHeatmap = L.GeoJSON.extend({
     _this._solrUrl = url;
     _this._layers = {};
     _this.timeOfLastClick = 0;
+    globalSolrStart = 0;
   },
 
   onAdd: function (passedMap) {
@@ -28,6 +29,7 @@ L.SolrHeatmap = L.GeoJSON.extend({
   	    _this._map = passedMap;
 	    _this._map.on('moveend', function() {
 		    _this._clearLayers();
+		    globalSolrStart = 0;
 		    _this._getData();
 		});
 	    if (_this.options.popupDisplay)
@@ -38,6 +40,7 @@ L.SolrHeatmap = L.GeoJSON.extend({
 			    _this.options.popupDisplay = _this.options.popupDisplay.split(',');
 		    _this.heatmapLayerListener =  _this._map.on('click', function(e) {
 			    _this.timeOfLastClick = Date.now();
+			    globalSolrStart = 0;
 			    _this._getNearbyData(e.latlng);
 		});
 		}
@@ -367,11 +370,13 @@ L.SolrHeatmap = L.GeoJSON.extend({
   },
 
   // called on mouse clicks, sends Solr request for nearby documents
-  _getNearbyData: function(latlng)
+  _getNearbyData: function(latlng, startRow)
   {
       var _this = this;
       if (_this._map == null) 
 	  {console.log('leafletSolrHeatmap._getNearbyData null map warning');return;}
+      if (!startRow)
+	  startRow = 0;
       var pt = latlng.lat + ',' + latlng.lng;
       var metersPerPixel = _this._getMetersPerPixel(latlng);
       var cellSizePixels = _this._getCellSize();
@@ -387,13 +392,14 @@ L.SolrHeatmap = L.GeoJSON.extend({
       var query = '{!field f=' + nearbyField + ' score=overlapRatio}Intersects(ENVELOPE(' + 
 			    (lng - cellSizeDegrees) + ',' + (lng + cellSizeDegrees) + ',' +  (lat + cellSizeDegrees) + ',' + (lat - cellSizeDegrees)
 			    + '))';
-      var queryHash = {q: query, rows: 20, wt: 'json'};
+      var queryHash = {q: query, rows: 20, wt: 'json', start: startRow};
       if (nearbyFieldType === 'RPT')
       {
 	  query = "*:*";
 	  queryHash = {
 	      q: query,
 	      rows: 20,
+	      start: startRow,
 	      wt: 'json',
 	      fq: '{!geofilt}',
 	      sfield: nearbyField,
@@ -426,18 +432,25 @@ L.SolrHeatmap = L.GeoJSON.extend({
   // displays nearby items from solr
   _nearbyDataResponseHandler: function (data, latlng, _this)
   {
-      _this._createPopup(data, latlng);
+      _this._createPopup(data, latlng, 'solrGetNextNearby');
   },
   
   // display solr data in popup with highighlighting
-  _createPopup: function(data, latlng)
+  _createPopup: function(data, latlng, nextFunctionName)
   {
       var solrResponse = data;
       var solrItems = data.response.docs;
       var lines = "";
       _this.tmpIdToSolr = {};
       if (solrItems.length == 0)
-	  return;
+	  {
+	      if (globalPopup)
+	      {
+		  globalPopup.setContent("No More Results");
+		  globalPopup.update();
+	      }
+	      return;
+	  }
       var limit = Math.min(20, solrItems.length);
       for (var i = 0 ; i < limit ; i++)
 	  {
@@ -448,12 +461,36 @@ L.SolrHeatmap = L.GeoJSON.extend({
 	      line = "<div id='" + id + "'>" + line + "</div>";
 	      lines += line;
 	  }
+      // use jquery button?
+      if (solrItems.length == 20 && nextFunctionName)
+	  lines += "<a href='javascript:" + nextFunctionName + "();'>More</a>";
+      leafletSolrHeatmap = _this;
+      globalLatLng = latlng;
+
       // offset the popup so it doesn't cover highlighting
       var popup = L.popup({offset: L.point(0, -20)});
       popup.setLatLng(latlng);
       popup.setContent(lines);
       popup.openOn(map);
+      globalPopup = popup;
+      // scroll bar on div with class leaflet-popup-content
+      // use div.outerHeight to get document size estimate
+      // use div.scrollTop to get where scrollbar is
+      var popupDiv = jQuery('.leaflet-popup-content');
+      var lastScrollQueryTime = 0;
+      /*
+      popupDiv.scroll(function(event){
+	      if (popupDiv.scrollTop() > popupDiv.outerHeight())
+	      {
+		  console.log('near bottom', popupDiv.outerHeight(), popupDiv.scrollTop());
+		  var content = popup.getContent();
+		  content += "<div> more content!!!!!!!</div>";
+		  popup.setContent(content);
+		  popup.update();
 
+	      }  
+	  });
+      */
       if (_this.options.popupHighlight)
       {
 	  // div elements exist, add mouseover to highlight each one
@@ -584,9 +621,11 @@ L.SolrHeatmap = L.GeoJSON.extend({
 	  return "Missing " + field;
   },
 
-  _getData: function() {
+  _getData: function(startCount) {
     var _this = this;
     var startTime = Date.now();
+    if (!startCount)
+	startCount = 0;
     var bounds = _this._map.getBounds();
     var q = "*:*";
     if (_this.options.nearbyField && (_this.options.nearbyFieldType == 'BBox'))
@@ -600,6 +639,7 @@ L.SolrHeatmap = L.GeoJSON.extend({
         q: q,
         wt: 'json',
         rows: 20,
+        start: startCount,
         facet: true,
         'facet.heatmap': _this.options.field,
         'facet.heatmap.geom': _this._mapViewToWkt(),
@@ -628,7 +668,7 @@ L.SolrHeatmap = L.GeoJSON.extend({
 	    var width = mapBounds.getEast() - mapBounds.getWest();
 	    var height = mapBounds.getNorth() - mapBounds.getSouth();
 	    var popupLocation = L.latLng(mapBounds.getSouth() + (height * 0.), mapBounds.getWest() + (width* .2));
-	    _this._createPopup(data, popupLocation);
+	    _this._createPopup(data, popupLocation, 'solrGetNext');
 	}
 
       },
@@ -694,4 +734,31 @@ if (typeof L.MarkerCluster !== 'undefined') {
       this._childCount = b.options.count;
   	}
   };
+}
+
+
+// the popups include a 'More' button to show the next set of Solr results
+// the popup can be displayed by either click on the map (a get nearby request)
+//   or a pan/zoom which shows documents on the map
+// the popups use Leaflet.popup, they expect its contents to be a string
+// this prevents us from having the popup contain references to actual JavaScript objects
+// for now, we use a couple global functions and variables to respond to deal with More
+
+var globalSolrStart;
+var globalPopup;
+
+function solrGetNext()
+{
+    globalSolrStart += 20;
+    globalPopup.setContent("Loading...");
+    globalPopup.update();
+    leafletSolrHeatmap._getData(globalSolrStart);
+
+}
+function solrGetNextNearby()
+{
+    globalSolrStart += 20;
+    globalPopup.setContent("Loading...");
+    globalPopup.update();
+    leafletSolrHeatmap._getNearbyData(globalLatLng, globalSolrStart);
 }
