@@ -87,6 +87,7 @@ L.HeatLayer = (L.Layer ? L.Layer : L.Class).extend({
         L.DomUtil.addClass(canvas, 'leaflet-zoom-' + (animated ? 'animated' : 'hide'));
 
         this._heat = simpleheat(canvas);
+	this._heat.fixedOpacity(this.options.fixedOpacity);
         this._updateOptions();
     },
 

@@ -12,6 +12,7 @@ L.SolrHeatmap = L.GeoJSON.extend({
     solrNearbySuccessHandler: null,
     renderCompleteHandler: null,
     popupHighlight: false,
+    fixedOpacity: false,
     showGlobalResults: false
   },
 
@@ -178,7 +179,7 @@ L.SolrHeatmap = L.GeoJSON.extend({
 
     // settting max due to bug
     // http://stackoverflow.com/questions/26767722/leaflet-heat-issue-with-adding-points-with-intensity
-    var options = {radius: cellSize, gradient: gradient, minOpacity: .1};
+    var options = {radius: cellSize, gradient: gradient, minOpacity: .1, fixedOpacity: _this.options.fixedOpacity};
     var heatmapLayer = L.heatLayer(heatmapCells, options);
     //heatmapLayer.setOptions(options);
     heatmapLayer.addTo(map);

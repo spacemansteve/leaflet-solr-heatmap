@@ -95,6 +95,7 @@ function resetSolr()
 	    renderCompleteHandler: renderCompleteHandler,
 	    popupHighlight: true,
 	    showGlobalResults: showGlobalResults,
+	    fixedOpacity: 100,
 	    // Inherited from L.GeoJSON
 	    onEachFeature: onEachFeature
 	});

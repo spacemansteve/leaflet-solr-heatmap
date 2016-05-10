@@ -12,6 +12,7 @@ function simpleheat(canvas) {
     this._height = canvas.height;
 
     this._max = 1;
+    this._fixedOpacity = null;
     this._data = [];
 }
 
@@ -35,6 +36,12 @@ simpleheat.prototype = {
     max: function (max) {
         this._max = max;
         return this;
+    },
+
+    // value between 0 and 255
+    fixedOpacity: function(fixedOpacity) {
+	this._fixedOpacity = fixedOpacity;
+	return this;
     },
 
     add: function (point) {
@@ -107,6 +114,7 @@ simpleheat.prototype = {
         for (var i = 0, len = this._data.length, p; i < len; i++) {
             p = this._data[i];
             ctx.globalAlpha = Math.max(p[2] / this._max, minOpacity === undefined ? 0.05 : minOpacity);
+	    //ctx.globalAlpha = .1;
             ctx.drawImage(this._circle, p[0] - this._r, p[1] - this._r);
         }
 
@@ -126,6 +134,8 @@ simpleheat.prototype = {
                 pixels[i] = gradient[j];
                 pixels[i + 1] = gradient[j + 1];
                 pixels[i + 2] = gradient[j + 2];
+		if (this._fixedOpacity != null)
+		    pixels[i + 3] = this._fixedOpacity;
             }
         }
     },
@@ -140,3 +150,4 @@ simpleheat.prototype = {
         }
     }
 };
+
