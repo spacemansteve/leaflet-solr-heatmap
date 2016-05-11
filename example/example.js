@@ -9,6 +9,15 @@ function onEachFeature(feature, layer) {
   layer.bindPopup(count);
 }
 
+function setKeyword()
+{
+    var filterQuery = jQuery('#keywordSearchText').val();
+    solr.resetFilterQueries();
+    solr.addFilterQuery(filterQuery);
+    solr.refresh();
+};
+
+
 // Create and add a solrHeatmap layer to the map
 //var solr = L.solrHeatmap('http://127.0.0.1:8983/solr/gettingstarted', {
 
@@ -62,7 +71,7 @@ function resetSolr()
     var solrSuccessHandler = function(data, textStatus, jqXHR)
     {
 	jQuery('#errorMessage').text('');
-        jQuery('#responseTime').html('Solr response time' + solr.solrTime + ' ms');
+        jQuery('#responseTime').html('Solr response time: ' + solr.solrTime + ' ms');
         jQuery('#numDocs').html('Number of docs: ' + solr.docsCount.toLocaleString());
 
     };
@@ -100,7 +109,6 @@ function resetSolr()
 	    onEachFeature: onEachFeature
 	});
     solr.addTo(map);
-    
 }
 
 var solr = null;

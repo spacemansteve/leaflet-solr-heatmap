@@ -23,6 +23,7 @@ L.SolrHeatmap = L.GeoJSON.extend({
     _this._layers = {};
     _this.timeOfLastClick = 0;
     globalSolrStart = 0;
+    _this._filterQueries = [];
   },
 
   onAdd: function (passedMap) {
@@ -68,6 +69,13 @@ L.SolrHeatmap = L.GeoJSON.extend({
       }
 
   },
+
+  refresh: function() {
+	    globalSolrStart = 0;
+	    this._clearLayers();
+	    this._getData();
+  },
+
 
   _computeHeatmapObject: function(data) {
     var _this = this;
@@ -644,7 +652,7 @@ L.SolrHeatmap = L.GeoJSON.extend({
         facet: true,
         'facet.heatmap': _this.options.field,
         'facet.heatmap.geom': _this._mapViewToWkt(),
-        fq: _this.options.field + _this._mapViewToEnvelope()
+        fq: _this.options.field + _this._mapViewToEnvelope(),
       },
       jsonp: 'json.wrf',
       success: function(data, textStatus, jqXHR) {
@@ -692,8 +700,24 @@ L.SolrHeatmap = L.GeoJSON.extend({
     return '["' + bounds.getWest() + ' ' + bounds.getSouth() + '" TO "' + bounds.getEast() + ' ' + bounds.getNorth() + '"]';
   },
 
+  resetFilterQueries: function() {
+      this._filterQueries = [];
+  },
+
+  addFilterQuery: function(query) {
+      this._filterQueries.push(query);
+  },
+  
   _solrQuery: function() {
-    return '/' + this.options.solrRequestHandler + '?' + this.options.field;
+	    var fqs = "";
+	    var _this = this;
+	    for (var i = 0 ; i < _this._filterQueries.length ; i++)
+	    {
+		var current = _this._filterQueries[i];
+		var fq = "&fq=" + current;
+		fqs += fq;
+	    }
+	    return '/' + this.options.solrRequestHandler + '?' + this.options.field + fqs;  
   }
 });
 
