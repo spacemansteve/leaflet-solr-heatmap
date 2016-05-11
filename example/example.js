@@ -12,7 +12,7 @@ function onEachFeature(feature, layer) {
 function setKeyword()
 {
     var filterQuery = jQuery('#keywordSearchText').val();
-    solr.resetFilterQueries();
+    solr.clearFilterQueries();
     solr.addFilterQuery(filterQuery);
     solr.refresh();
 };

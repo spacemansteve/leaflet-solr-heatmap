@@ -700,7 +700,7 @@ L.SolrHeatmap = L.GeoJSON.extend({
     return '["' + bounds.getWest() + ' ' + bounds.getSouth() + '" TO "' + bounds.getEast() + ' ' + bounds.getNorth() + '"]';
   },
 
-  resetFilterQueries: function() {
+  clearFilterQueries: function() {
       this._filterQueries = [];
   },
 

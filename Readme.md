@@ -53,7 +53,7 @@ Option | Type | Default | Description
 
 
 
-## popupDisplay
+## Popup Display
 When the user clicks on the map, the heatmap layer can popup a window
 with information on nearby Solr documents.  Nearby is defined as Solr
 documents within the size of a heatmap bubble cell.  On map clicks,
@@ -92,6 +92,29 @@ var solr = L.solrHeatmap("http://localhost:8983/solr/coreName",
 // and formatDoi is a local Javascript function that returns the html
 // representation of the doi field
 ```
+
+## Including Keyword Searches
+
+The library makes requests directly to Solr.  In your application you
+may want to augment this request with addtional filter queries to
+support keyword searching or otherwise limiting results.  To support
+this, the library provides the function "addFilterQuery".  The string
+should be in Solr's filter query syntax (e.g., title:*Water*).  The
+exact details (such as whether or not to include * symbols) depend on
+the type of field you are searching.  You should not include "fq=" in
+the parameter, it will be prepended.  To set multiple filters, call
+addFilterQuery multiple times.  To delete all filter queries, call
+clearFilterQueries.  
+
+Setting a filter query does not automatically update the heatmap.
+After changing the filter queries, call the refresh method to generate
+a new heatmap.  Note that refresh does not revisit any of the
+configuration parameters passed to the constructor.  You can not, for
+example, try to change the URL to the Solr instance or fields in the
+popup and then call refresh.  If you are changing configuration
+parameters, you should call the constructor and make a new object.
+
+
 
 ## Running locally
 
