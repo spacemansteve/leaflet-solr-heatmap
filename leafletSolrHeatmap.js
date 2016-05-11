@@ -441,7 +441,11 @@ L.SolrHeatmap = L.GeoJSON.extend({
   // displays nearby items from solr
   _nearbyDataResponseHandler: function (data, latlng, _this)
   {
-      _this._createPopup(data, latlng, 'solrGetNextNearby');
+      var popupDisplay = _this.options.popupDisplay;
+      if ((typeof popupDisplay) === "function")
+	  popupDisplay(data, latlng, _this);
+      else
+	  _this._createPopup(data, latlng, 'solrGetNextNearby');
   },
   
   // display solr data in popup with highighlighting
@@ -578,8 +582,6 @@ L.SolrHeatmap = L.GeoJSON.extend({
   {
       var _this = this;
       var popupDisplay = _this.options.popupDisplay;
-      if ((typeof popupDisplay) === "function")
-	  return popupDisplay(doc);
 
       if ((typeof popupDisplay) === "string")
 	  return _this._popupFieldFormatter(doc, popupDisplay) + "<br/>";
@@ -677,7 +679,11 @@ L.SolrHeatmap = L.GeoJSON.extend({
 	    var width = mapBounds.getEast() - mapBounds.getWest();
 	    var height = mapBounds.getNorth() - mapBounds.getSouth();
 	    var popupLocation = L.latLng(mapBounds.getSouth() + (height * 0.), mapBounds.getWest() + (width* .2));
-	    _this._createPopup(data, popupLocation, 'solrGetNext');
+	    var popupDisplay = _this.options.popupDisplay;
+	    if ((typeof popupDisplay) === "function")
+		popupDisplay(data, popupLocation, _this);
+	    else
+		_this._createPopup(data, popupLocation, 'solrGetNext');
 	}
 
       },

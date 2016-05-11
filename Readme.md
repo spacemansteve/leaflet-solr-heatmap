@@ -70,9 +70,11 @@ want to change the formatting of a single field, rather than providing
 the field name provide an array whose first element is the field name
 and second element a function that takes a Solr document.  This
 function should return the html description of the field.  You can
-override all the default formatting of Solr fields.  Simply set
-popupDisplay to a function that accepts one argument, a Solr document
-in JSON format. This function should return a string with HTML tags.   
+also override the popup completely.  Simply set
+popupDisplay to a function that accepts three arguments, the entire
+Solr response, the location of the click and the solr heatmap layer
+object.  This function can use a popup, display the results in some
+other div on the page, etc.
 
 If the sort field is provided, the results in the popup are sorted
 from largest to smallest
