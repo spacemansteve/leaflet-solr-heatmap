@@ -82,6 +82,7 @@ function resetSolr()
 	    $('#renderTime').html('Render time: ' + solr.renderTime + ' ms');
     };
 
+    var keyword = jQuery('#keywordSearchText').val();
     //http://localhost:8983/solr/jstorTest
     solr = L.solrHeatmap(solrUrl, {
 	    // Solr field with geospatial data (should be type Spatial Recursive Prefix Tree)
@@ -105,10 +106,12 @@ function resetSolr()
 	    popupHighlight: true,
 	    showGlobalResults: showGlobalResults,
 	    fixedOpacity: 100,
+	    filterQuery: keyword,
 	    // Inherited from L.GeoJSON
 	    onEachFeature: onEachFeature
 	});
     solr.addTo(map);
+
 }
 
 var solr = null;

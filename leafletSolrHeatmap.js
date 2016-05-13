@@ -13,7 +13,8 @@ L.SolrHeatmap = L.GeoJSON.extend({
     renderCompleteHandler: null,
     popupHighlight: false,
     fixedOpacity: false,
-    showGlobalResults: false
+    showGlobalResults: false,
+    filterQuery: false
   },
 
   initialize: function(url, options) {
@@ -24,6 +25,8 @@ L.SolrHeatmap = L.GeoJSON.extend({
     _this.timeOfLastClick = 0;
     globalSolrStart = 0;
     _this._filterQueries = [];
+    if (options.filterQuery)
+	_this._filterQueries.push(options.filterQuery);
   },
 
   onAdd: function (passedMap) {
@@ -104,7 +107,8 @@ L.SolrHeatmap = L.GeoJSON.extend({
         _this.clearLayers();
         break;
       case 'clusters':
-        _this.clusterMarkers.clearLayers();
+	  if (_this.clusterMarkers)
+	      _this.clusterMarkers.clearLayers();
         break;
       case 'heatmap':
 	  if (_this._map)

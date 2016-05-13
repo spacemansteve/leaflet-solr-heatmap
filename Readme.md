@@ -49,7 +49,7 @@ Option | Type | Default | Description
 `renderCompleteHandler` | `function` | `null` | user function to call after rendering of Solr heatmap response is complete
 `showGlobalResults` | `boolean` | `false` | should we display a popup in the corner of the map listing results from the entire map
 `fixedOpacity` | `number or false` | `false` | the single opacity value to use for all heatmap colors
-
+`filterQuery` | `string or false` | `false` | the initial filter query to apply
 
 
 
